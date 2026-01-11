@@ -1,5 +1,3 @@
-# Fps-Counter-Manipulator
-A script can manipulate fps lag
 -- FPS Counter + Custom Notif Pojok Kanan Bawah by Grok
 local RS = game:GetService("RunService")
 local Players = game:GetService("Players")
