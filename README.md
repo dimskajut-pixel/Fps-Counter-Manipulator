@@ -1,2 +1,115 @@
 # Fps-Counter-Manipulator
 A script can manipulate fps lag
+-- FPS Counter + Custom Notif Pojok Kanan Bawah by Grok
+local RS = game:GetService("RunService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+local frames = 0
+local lastTime = tick()
+
+-- Container untuk FPS + Notif (ScreenGui di CoreGui biar pasti muncul)
+local sg = Instance.new("ScreenGui")
+sg.Name = "BottomRightHUD"
+sg.ResetOnSpawn = false
+sg.Parent = CoreGui
+
+-- FPS Label (kecil di atas notif)
+local fpsLabel = Instance.new("TextLabel", sg)
+fpsLabel.Size = UDim2.new(0, 85, 0, 22)
+fpsLabel.Position = UDim2.new(1, -90, 1, -55)  -- Di atas notif area
+fpsLabel.BackgroundTransparency = 0.6
+fpsLabel.BackgroundColor3 = Color3.new(0,0,0)
+fpsLabel.BorderSizePixel = 0
+fpsLabel.TextSize = 13
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.TextColor3 = Color3.new(1,1,1)
+fpsLabel.Text = "FPS: 0"
+
+-- Notif Container (Frame yang stack dari bawah)
+local notifContainer = Instance.new("Frame", sg)
+notifContainer.Size = UDim2.new(0, 200, 0, 0)  -- Auto height
+notifContainer.Position = UDim2.new(1, -210, 1, -30)
+notifContainer.BackgroundTransparency = 1
+notifContainer.BorderSizePixel = 0
+
+local listLayout = Instance.new("UIListLayout", notifContainer)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 5)
+listLayout.FillDirection = Enum.FillDirection.Vertical
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+
+-- Fungsi buat notif baru
+local function showNotif(title, text, color)
+    color = color or Color3.new(0,1,0)  -- Default hijau sukses
+    
+    local notifFrame = Instance.new("Frame")
+    notifFrame.Size = UDim2.new(1, 0, 0, 50)
+    notifFrame.BackgroundColor3 = Color3.new(0,0,0)
+    notifFrame.BackgroundTransparency = 0.4
+    notifFrame.BorderSizePixel = 0
+    notifFrame.ClipsDescendants = true
+    notifFrame.Parent = notifContainer
+    
+    local titleLbl = Instance.new("TextLabel", notifFrame)
+    titleLbl.Size = UDim2.new(1,0,0.4,0)
+    titleLbl.Position = UDim2.new(0,0,0,0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = title
+    titleLbl.TextColor3 = color
+    titleLbl.TextSize = 14
+    titleLbl.Font = Enum.Font.GothamBold
+    
+    local textLbl = Instance.new("TextLabel", notifFrame)
+    textLbl.Size = UDim2.new(1,0,0.6,0)
+    textLbl.Position = UDim2.new(0,0,0.4,0)
+    textLbl.BackgroundTransparency = 1
+    textLbl.Text = text
+    textLbl.TextColor3 = Color3.new(1,1,1)
+    textLbl.TextSize = 12
+    textLbl.Font = Enum.Font.Gotham
+    textLbl.TextWrapped = true
+    
+    -- Tween masuk dari kanan
+    notifFrame.Position = UDim2.new(1, 210, 1, -30)  -- Mulai di luar layar
+    TweenService:Create(notifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -210, 1, -30)}):Play()
+    
+    -- Fade out setelah 5 detik
+    wait(5)
+    local fadeTween = TweenService:Create(notifFrame, TweenInfo.new(0.8), {BackgroundTransparency = 1})
+    fadeTween:Play()
+    fadeTween.Completed:Connect(function()
+        notifFrame:Destroy()
+    end)
+end
+
+-- Update FPS real-time
+RS.Heartbeat:Connect(function()
+    frames = frames + 1
+    if tick() - lastTime >= 1 then
+        local fps = math.floor(frames / (tick() - lastTime))
+        fpsLabel.Text = "FPS: " .. fps
+        
+        -- Warna FPS
+        fpsLabel.TextColor3 = fps >= 100 and Color3.new(0,1,1) or fps >= 30 and Color3.new(0,1,0) or fps >= 20 and Color3.new(1,1,0) or Color3.new(1,0,0)
+        
+        frames = 0
+        lastTime = tick()
+    end
+end)
+
+-- Contoh panggil notif (kamu bisa panggil dari script lain)
+showNotif("Welcome", "FPS Counter Has Loaded And No Reset On Spawn (Permanent)🔥", Color3.new(0,1,1))  -- Biru godmode
+
+-- Permanen respawn
+player.CharacterAdded:Connect(function()
+    wait(0.5)
+    if not CoreGui:FindFirstChild("BottomRightHUD") then
+        sg:Clone().Parent = CoreGui  -- Re-create kalau hilang
+    end
+end)
+
+print("Anjayy! FPS + Notif Pojok Kanan Bawah Loaded 🔥")
